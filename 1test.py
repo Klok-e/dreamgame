@@ -25,7 +25,7 @@ cm.Wall.TEXTURES = [load_image('wall.bmp')]
 a = cm.Wall((50, 50))
 lines = a.get_lines()
 
-tf=lines[0]
+tf=lines[1]
 print(tf)
 
 Ax = np.arange(0., 20., 1.)

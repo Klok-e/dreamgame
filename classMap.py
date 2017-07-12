@@ -37,36 +37,35 @@ class Camera():
 class Wall(pygame.sprite.Sprite):
     TEXTURES = []
 
-    def __init__(self, pos, mapp=None):
+    def __init__(self, pos):
         super().__init__()
 
         self.image = pygame.transform.scale(random.choice(self.TEXTURES), TILESIZE)
         self.rect: pygame.Rect = self.image.get_rect(topleft=pos)
         # self.radius = TILESIZE[0] // 2
-        if mapp != None:
-            self.add(mapp.unwalkabletilesgrp, mapp.collideblesgrp)
+
 
 
         self.line_equations = []
 
-        #bottom line
-        e=line_eq(self.rect.bottomleft,self.rect.bottomright)
-        #print(e)
+        # bottom line
+        e = line_eq(self.rect.bottomleft, self.rect.bottomright)
+        # print(e)
         self.line_equations.append(e)
 
-        #top line
+        # top line
         e = line_eq(self.rect.topleft, self.rect.topright)
         self.line_equations.append(e)
 
-        #left line
-        e=self.rect.left
+        # left line
+        e = self.rect.left
         self.line_equations.append(e)
 
-        #right line
-        e=self.rect.right
+        # right line
+        e = self.rect.right
         self.line_equations.append(e)
 
-        assert isinstance(e,int),'wtf r u doin'
+        assert isinstance(e, int), 'wtf r u doin'
 
     def get_lines(self):
         return self.line_equations
@@ -163,17 +162,23 @@ class Mapg():
     def __set_unwalkable_onthe_edges(self):
         for i in range(MAPSIZE[0]):
             pixpos = self.block_to_pix_coords((i, 0))
-            Wall(pixpos, self)
+            a = Wall(pixpos)
 
             pixpos = self.block_to_pix_coords((i, MAPSIZE[1] - 1))
-            Wall(pixpos, self)
+            b = Wall(pixpos)
+
+            a.add(self.unwalkabletilesgrp, self.collideblesgrp)
+            b.add(self.unwalkabletilesgrp, self.collideblesgrp)
 
         for i in range(1, MAPSIZE[1] - 1):
             pixpos = self.block_to_pix_coords((0, i))
-            Wall(pixpos, self)
+            a = Wall(pixpos)
 
             pixpos = self.block_to_pix_coords((MAPSIZE[0] - 1, i))
-            Wall(pixpos, self)
+            b = Wall(pixpos)
+
+            a.add(self.unwalkabletilesgrp, self.collideblesgrp)
+            b.add(self.unwalkabletilesgrp, self.collideblesgrp)
 
     def _set_grass(self):
         for y in range(1, MAPSIZE[1]):
