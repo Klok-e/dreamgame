@@ -1,5 +1,8 @@
 import pygame
 import time
+import classMap as m
+#from classMap import *
+import numpy as np
 
 BLACK = (0, 0, 0)
 ORANGE = (255, 174, 53)
@@ -38,16 +41,59 @@ def debug_param(*params):
         dbg_clock = time.time()
         print(*params)
 
-def line_eq(xy1,xy2):
-    #print("Координаты точки A(x1;y1):")
+
+def line_eq(xy1, xy2):
+    # print("Координаты точки A(x1;y1):")
     x1 = xy1[0]
     y1 = xy1[1]
 
-    #print("Координаты точки B(x2;y2):")
+    # print("Координаты точки B(x2;y2):")
     x2 = xy2[0]
     y2 = xy2[1]
 
-    #print("Уравнение прямой, проходящей через эти точки:")
+    # print("Уравнение прямой, проходящей через эти точки:")
     k = (y1 - y2) / (x1 - x2)
     b = y2 - k * x2
     return "%f*x + %f" % (k, b)
+
+
+def find_intersection_point(line1_or_int, line2: str):
+    if isinstance(line1_or_int, str) and isinstance(line2, str):
+        assert isinstance(line1_or_int, str) and isinstance(line2, str), 'not str'
+
+        line1 = line1_or_int.split(' + ')
+        k1 = float(line1[0].split('*')[0])
+        b1 = float(line1[1])
+
+        line2 = line2.split(' + ')
+        k2 = float(line2[0].split('*')[0])
+        b2 = float(line2[1])
+
+        x = (b2 - b1) / (k1 - k2)
+
+        y = eval(line1_or_int)  # x in random lline eq = y
+        assert isinstance(y, float), 'not a number'
+
+        return x, y
+    elif isinstance(line1_or_int, int) and isinstance(line2, str):
+        x = line1_or_int
+        y = eval(line2)
+        return x, y
+
+    assert isinstance(line1_or_int, int) and isinstance(line2, str), 'not int or not str'
+
+
+def find_intersection_line_coll(line: str, coll):
+    if isinstance(coll, m.Wall):  # do wall stuff
+        coords = []  # number of square's sides xes
+        #print(coords)
+        for i, eq in enumerate(coll.line_equations):
+            coords.append(find_intersection_point( eq,line))
+        #print(coords)
+
+        return coords
+
+        #check domain
+
+    elif isinstance(coll, m.Entity):  # do circle stuff
+        pass

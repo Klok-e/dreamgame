@@ -20,17 +20,32 @@ def get_ay(txtF: str, Ax):
         Ay.append(y)
     return Ay
 
+def c_tst():
+    f1='-0.000000*x + 50.000000'
+    f2='1*x + 40.000000'
+    a=find_intersection_point(f1,f2)
+    print(a)
 
-cm.Wall.TEXTURES = [load_image('wall.bmp')]
-a = cm.Wall((50, 50))
-lines = a.get_lines()
+    Ax = np.arange(0., 20., 1.)
+    Ay1 = get_ay(f1, Ax)
+    Ay2=get_ay(f2,Ax)
 
-tf=lines[1]
-print(tf)
+    plt.plot(Ax, Ay1,'bo',Ax,Ay2,'--r')
+    plt.show()
 
-Ax = np.arange(0., 20., 1.)
-Ay=get_ay(tf,Ax)
-print(Ax,Ay)
+#c_tst()
 
-plt.plot(Ax,Ay)
-plt.show()
+def tst():
+    cm.Wall.TEXTURES = [load_image('wall.bmp')]
+    a = cm.Wall((50, 50))
+
+    ar=find_intersection_line_coll('1*x + 40.000000',a)
+    print(ar)
+
+
+    Ax = np.arange(0., 120., 1.)
+
+
+    plt.show()
+
+tst()

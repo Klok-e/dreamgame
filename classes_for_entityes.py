@@ -3,8 +3,9 @@ from locals import *
 import pygame
 import math
 import random
-import ai_geneticNN as aig
+#import ai_geneticNN as aig
 import numpy as np
+from classMap import *
 
 
 def collide_circleNrect(spriteCircle, spriteRect):
@@ -179,7 +180,7 @@ class Entity(pygame.sprite.Sprite):
     def attack(self):
 
         def cassettes_of_trgl(angle, hypotenuse):
-            angle = angle  # WTH?
+            angle = angle  # WTf?
 
             cass_nearest = math.cos(math.radians(angle)) * hypotenuse
             cass_farest = math.sin(math.radians(angle)) * hypotenuse
@@ -246,6 +247,10 @@ class Entity(pygame.sprite.Sprite):
         data_angle = self.for_movement_struct['vector'].get_angle()
 
         # obstacles
+        sight_line_eq=str(math.tan(math.radians(data_angle)))+'*x'+str(self.for_movement_struct['pos'][1])
+        for coll in self.mapp.collideblesgrp:
+            pass
+
 
     def update(self):
         # print(self.survival_struct['hp'])
