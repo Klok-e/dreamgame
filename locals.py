@@ -1,8 +1,9 @@
 import pygame
 import time
 import classMap as m
-#from classMap import *
+# from classMap import *
 import numpy as np
+import math
 
 BLACK = (0, 0, 0)
 ORANGE = (255, 174, 53)
@@ -57,6 +58,28 @@ def line_eq(xy1, xy2):
     return "%f*x + %f" % (k, b)
 
 
+def get_points_on_line(start, end, amount):
+    # TODO: this
+    return None
+
+
+def is_point_in_collideble(point, coll):
+    if isinstance(coll, m.Wall):  # do wall stuff
+        a = coll.rect.collidepoint(point)
+        return a
+    elif isinstance(coll, m.Entity):  # do circle stuff
+        p = coll.for_movement_struct['pos']
+        r = coll.radius
+        x1, y1 = p
+        x2, y2 = point
+        vx, vy = (x2 - x1, y2 - y1)
+        mod = math.sqrt(vx ** 2 + vy ** 2)
+        a = mod < r
+        return a
+    assert isinstance(coll, m.Wall) or isinstance(coll, m.Entity), 'not collideble'
+
+
+# TODO: make obstacle detection mathematically
 def find_intersection_point(line1_or_int, line2: str):
     if isinstance(line1_or_int, str) and isinstance(line2, str):
         assert isinstance(line1_or_int, str) and isinstance(line2, str), 'not str'
@@ -69,7 +92,7 @@ def find_intersection_point(line1_or_int, line2: str):
         k2 = float(line2[0].split('*')[0])
         b2 = float(line2[1])
 
-        assert k1!=k2,'oh shi 1/0'
+        assert k1 != k2, 'oh shi 1/0'
         x = (b2 - b1) / (k1 - k2)
 
         y = eval(line1_or_int)  # x in random lline eq = y
@@ -87,24 +110,22 @@ def find_intersection_point(line1_or_int, line2: str):
 def find_intersection_line_coll(line: str, coll):
     if isinstance(coll, m.Wall):  # do wall stuff
         coords = []  # number of square's sides xes
-        #print(coords)
+        # print(coords)
         for i, eq in enumerate(coll.line_equations):
-            coords.append(find_intersection_point( eq,line))
-        #print(coords)
+            coords.append(find_intersection_point(eq, line))
+        # print(coords)
 
 
-        #check domain
-        colliding=[]
-        for x,y in coords:
-            a=coll.rect.collidepoint(x,y)
+        # check domain
+        colliding = []
+        for x, y in coords:
+            a = coll.rect.collidepoint(x, y)
             colliding.append(a)
 
-        ans=zip(coords,colliding)
+        ans = zip(coords, colliding)
         print(list(ans))
         return ans
 
     elif isinstance(coll, m.Entity):  # do circle stuff
-        p=coll.for_movement_struct['pos']
-        r=coll.radius
-
-
+        p = coll.for_movement_struct['pos']
+        r = coll.radius

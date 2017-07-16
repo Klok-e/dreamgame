@@ -147,6 +147,8 @@ class Entity(pygame.sprite.Sprite):
 
     FOOD_EATEN_EVERY_TICK = 1
 
+    length_of_sight=100
+
     def __init__(self, pos, mapp, nn_parameters=None):
         super().__init__()
         self.original_img: pygame.Surface = pygame.transform.scale(random.choice(self.TEXTURES),
@@ -252,9 +254,19 @@ class Entity(pygame.sprite.Sprite):
         data_angle = self.for_movement_struct['vector'].get_angle()
 
         # obstacles
+        l=self.length_of_sight# straightforward
+        end=(math.cos(math.radians(data_angle))*l,math.sin(math.radians(data_angle))*l)
+        points=get_points_on_line(self.for_movement_struct['pos'],end,l)
+
+        for point in points:
+            c=self.collidebles_group_without_self
+
+
+        '''
         sight_line_eq=str(math.tan(math.radians(data_angle)))+'*x'+str(self.for_movement_struct['pos'][1])
         for coll in self.mapp.collideblesgrp:
-            pass
+            find_intersection_line_coll(sight_line_eq,coll)
+            1/0'''#math
 
 
     def update(self):
