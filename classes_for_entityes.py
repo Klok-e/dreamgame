@@ -45,6 +45,11 @@ class Vector2(object):
 
     def __add__(self, other):
         return self.__thisVectorPlusAnotherVector(other)
+    def __mul__(self,other):
+        x1,y1=self.get_componenXY()
+        x2,y2=other.get_componenXY()
+        scalar=x1*x2+y1*y2
+        return scalar
 
     def get_componenXY(self):
         return (self.xy[0], self.xy[1])

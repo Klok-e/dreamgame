@@ -39,8 +39,8 @@ def tst():
     cm.Wall.TEXTURES = [load_image('wall.bmp')]
     a = cm.Wall((50, 50))
 
-    ar=find_intersection_line_coll('1*x + 40.000000',a)
-    print(ar)
+    ar=find_intersection_line_coll('0.1*x + 44.000000',a)
+    #print(ar)
 
 
     Ax = np.arange(0., 120., 1.)

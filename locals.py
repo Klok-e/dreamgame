@@ -69,6 +69,7 @@ def find_intersection_point(line1_or_int, line2: str):
         k2 = float(line2[0].split('*')[0])
         b2 = float(line2[1])
 
+        assert k1!=k2,'oh shi 1/0'
         x = (b2 - b1) / (k1 - k2)
 
         y = eval(line1_or_int)  # x in random lline eq = y
@@ -91,9 +92,19 @@ def find_intersection_line_coll(line: str, coll):
             coords.append(find_intersection_point( eq,line))
         #print(coords)
 
-        return coords
 
         #check domain
+        colliding=[]
+        for x,y in coords:
+            a=coll.rect.collidepoint(x,y)
+            colliding.append(a)
+
+        ans=zip(coords,colliding)
+        print(list(ans))
+        return ans
 
     elif isinstance(coll, m.Entity):  # do circle stuff
-        pass
+        p=coll.for_movement_struct['pos']
+        r=coll.radius
+
+

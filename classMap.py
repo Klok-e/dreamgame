@@ -49,20 +49,26 @@ class Wall(pygame.sprite.Sprite):
         self.line_equations = []
 
         # bottom line
-        e = line_eq(self.rect.bottomleft, self.rect.bottomright)
+        point1 = self.rect.bottomleft[0] + 1, self.rect.bottomleft[0] - 1
+        point2 = self.rect.bottomright[0] - 1, self.rect.bottomright[1] - 1
+
+        e = line_eq(point1, point2)
         # print(e)
         self.line_equations.append(e)
 
         # top line
-        e = line_eq(self.rect.topleft, self.rect.topright)
+        point1 = self.rect.topleft[0] + 1, self.rect.topleft[1] + 1
+        point2 = self.rect.topright[0] - 1, self.rect.topright[1] + 1
+
+        e = line_eq(point1, point2)
         self.line_equations.append(e)
 
         # left line
-        e = self.rect.left
+        e = self.rect.left+1
         self.line_equations.append(e)
 
         # right line
-        e = self.rect.right
+        e = self.rect.right-1
         self.line_equations.append(e)
 
         assert isinstance(e, int), 'wtf r u doin'
