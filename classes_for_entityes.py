@@ -149,6 +149,9 @@ class Entity(pygame.sprite.Sprite):
 
     length_of_sight=100
 
+    numb_of_sight_lines=3
+    diff_sight_lines_degrees=10
+
     def __init__(self, pos, mapp, nn_parameters=None):
         super().__init__()
         self.original_img: pygame.Surface = pygame.transform.scale(random.choice(self.TEXTURES),
@@ -183,6 +186,8 @@ class Entity(pygame.sprite.Sprite):
         # self.h = aig.Human(self)
 
         self.got_damage = 0
+
+        assert self.numb_of_sight_lines%2==1,'not even'
 
     def attack(self):
 
@@ -240,7 +245,7 @@ class Entity(pygame.sprite.Sprite):
             grass_tile.get_eaten(self.FOOD_EATEN_EVERY_TICK)
 
     def collect_environment_state(self):
-        data = np.empty((1, 5))
+        data = np.zeros((5))
 
         # amount of food available
         data_food = 0
@@ -254,12 +259,25 @@ class Entity(pygame.sprite.Sprite):
         data_angle = self.for_movement_struct['vector'].get_angle()
 
         # obstacles
-        l=self.length_of_sight# straightforward
-        end=(math.cos(math.radians(data_angle))*l,math.sin(math.radians(data_angle))*l)
-        points=get_points_on_line(self.for_movement_struct['pos'],end,l)
+        n=self.numb_of_sight_lines
+        data_dist_to_obstacles=np.zeros((n))
 
-        for point in points:
-            c=self.collidebles_group_without_self
+        degrees=degrees_for_sight_lines(data_angle,self.diff_sight_lines_degrees,n)
+
+        for i,deg in enumerate(degrees):# straightforward
+            l=self.length_of_sight
+            end=(math.cos(math.radians(data_angle))*l,math.sin(math.radians(deg))*l)
+            points=points_on_line(self.for_movement_struct['pos'], end, l)
+
+            c = self.collidebles_group_without_self
+
+            for point in points:
+                if data_dist_to_obstacles[i]:
+                    break
+                for coll in c:
+                    if is_point_in_collideble(point,coll):
+                        data_dist_to_obstacles[i]=dist_between_points(self.for_movement_struct['pos'],point)
+                        break
 
 
         '''

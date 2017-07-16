@@ -58,9 +58,30 @@ def line_eq(xy1, xy2):
     return "%f*x + %f" % (k, b)
 
 
-def get_points_on_line(start, end, amount):
+def points_on_line(start, end, amount):
     # TODO: this
     return None
+
+def degrees_for_sight_lines(initial_degree,step,amount):
+    assert amount%2==1,'amount is even'
+
+    a=[]
+    mul=0
+    for i in range(amount):
+        if i%2==0:
+            a.append(initial_degree-step*mul)
+        elif i%2==1:
+            mul += 1
+            a.append(initial_degree+step*mul)
+    a.sort()
+    return a
+
+def dist_between_points(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    vx, vy = (x2 - x1, y2 - y1)
+    mod = math.sqrt(vx ** 2 + vy ** 2)
+    return mod
 
 
 def is_point_in_collideble(point, coll):
@@ -70,11 +91,7 @@ def is_point_in_collideble(point, coll):
     elif isinstance(coll, m.Entity):  # do circle stuff
         p = coll.for_movement_struct['pos']
         r = coll.radius
-        x1, y1 = p
-        x2, y2 = point
-        vx, vy = (x2 - x1, y2 - y1)
-        mod = math.sqrt(vx ** 2 + vy ** 2)
-        a = mod < r
+        a = dist_between_points(p, point) < r
         return a
     assert isinstance(coll, m.Wall) or isinstance(coll, m.Entity), 'not collideble'
 

@@ -48,4 +48,10 @@ def tst():
 
     plt.show()
 
-tst()
+#tst()
+
+def tst10():
+    a=degrees_for_sight_lines(40, 10, 5)
+    print(a)
+
+tst10()
