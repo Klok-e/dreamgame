@@ -16,42 +16,52 @@ def get_ay(txtF: str, Ax):
     print(txtF)
     for x in Ax:
         y = eval(txtF)
-        #print(x)
+        # print(x)
         Ay.append(y)
     return Ay
 
+
 def c_tst():
-    f1='-0.000000*x + 50.000000'
-    f2='1*x + 40.000000'
-    a=find_intersection_point(f1,f2)
+    f1 = '-0.000000*x + 50.000000'
+    f2 = '1*x + 40.000000'
+    a = find_intersection_point(f1, f2)
     print(a)
 
     Ax = np.arange(0., 20., 1.)
     Ay1 = get_ay(f1, Ax)
-    Ay2=get_ay(f2,Ax)
+    Ay2 = get_ay(f2, Ax)
 
-    plt.plot(Ax, Ay1,'bo',Ax,Ay2,'--r')
+    plt.plot(Ax, Ay1, 'bo', Ax, Ay2, '--r')
     plt.show()
 
-#c_tst()
+
+# c_tst()
 
 def tst():
     cm.Wall.TEXTURES = [load_image('wall.bmp')]
     a = cm.Wall((50, 50))
 
-    ar=find_intersection_line_coll('0.1*x + 44.000000',a)
-    #print(ar)
+    ar = find_intersection_line_coll('0.1*x + 44.000000', a)
+    # print(ar)
 
 
     Ax = np.arange(0., 120., 1.)
 
-
     plt.show()
 
-#tst()
+
+# tst()
 
 def tst10():
-    a=degrees_for_sight_lines(40, 10, 5)
+    a = degrees_for_sight_lines(40, 10, 5)
     print(a)
 
-tst10()
+
+# tst10()
+
+def tst11():
+    a = points_on_line((10, 10), (150, 64), 10)
+    print(a)
+
+
+tst11()

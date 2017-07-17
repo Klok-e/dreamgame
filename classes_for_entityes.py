@@ -3,7 +3,7 @@ from locals import *
 import pygame
 import math
 import random
-#import ai_geneticNN as aig
+# import ai_geneticNN as aig
 import numpy as np
 from classMap import *
 
@@ -45,10 +45,11 @@ class Vector2(object):
 
     def __add__(self, other):
         return self.__thisVectorPlusAnotherVector(other)
-    def __mul__(self,other):
-        x1,y1=self.get_componenXY()
-        x2,y2=other.get_componenXY()
-        scalar=x1*x2+y1*y2
+
+    def __mul__(self, other):
+        x1, y1 = self.get_componenXY()
+        x2, y2 = other.get_componenXY()
+        scalar = x1 * x2 + y1 * y2
         return scalar
 
     def get_componenXY(self):
@@ -147,10 +148,10 @@ class Entity(pygame.sprite.Sprite):
 
     FOOD_EATEN_EVERY_TICK = 1
 
-    length_of_sight=100
+    length_of_sight = 100
 
-    numb_of_sight_lines=3
-    diff_sight_lines_degrees=10
+    numb_of_sight_lines = 3
+    diff_sight_lines_degrees = 10
 
     def __init__(self, pos, mapp, nn_parameters=None):
         super().__init__()
@@ -187,7 +188,7 @@ class Entity(pygame.sprite.Sprite):
 
         self.got_damage = 0
 
-        assert self.numb_of_sight_lines%2==1,'not even'
+        assert self.numb_of_sight_lines % 2 == 1, 'not even'
 
     def attack(self):
 
@@ -259,33 +260,29 @@ class Entity(pygame.sprite.Sprite):
         data_angle = self.for_movement_struct['vector'].get_angle()
 
         # obstacles
-        n=self.numb_of_sight_lines
-        data_dist_to_obstacles=np.zeros((n))
+        n = self.numb_of_sight_lines
+        data_dist_to_obstacles = np.zeros((n))
 
-        degrees=degrees_for_sight_lines(data_angle,self.diff_sight_lines_degrees,n)
+        degrees = degrees_for_sight_lines(data_angle, self.diff_sight_lines_degrees, n)
 
-        for i,deg in enumerate(degrees):# straightforward
-            l=self.length_of_sight
-            end=(math.cos(math.radians(data_angle))*l,math.sin(math.radians(deg))*l)
-            points=points_on_line(self.for_movement_struct['pos'], end, l)
-
-            c = self.collidebles_group_without_self
+        for i, deg in enumerate(degrees):  # straightforward
+            l = self.length_of_sight
+            end = (math.cos(math.radians(data_angle)) * l, math.sin(math.radians(deg)) * l)
+            points = points_on_line(self.for_movement_struct['pos'], end, l)
 
             for point in points:
                 if data_dist_to_obstacles[i]:
                     break
-                for coll in c:
-                    if is_point_in_collideble(point,coll):
-                        data_dist_to_obstacles[i]=dist_between_points(self.for_movement_struct['pos'],point)
+                for coll in self.collidebles_group_without_self:
+                    if is_point_in_collideble(point, coll):
+                        data_dist_to_obstacles[i] = dist_between_points(self.for_movement_struct['pos'], point)
                         break
-
 
         '''
         sight_line_eq=str(math.tan(math.radians(data_angle)))+'*x'+str(self.for_movement_struct['pos'][1])
         for coll in self.mapp.collideblesgrp:
             find_intersection_line_coll(sight_line_eq,coll)
-            1/0'''#math
-
+            1/0'''  # math
 
     def update(self):
         # print(self.survival_struct['hp'])

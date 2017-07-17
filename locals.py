@@ -4,6 +4,7 @@ import classMap as m
 # from classMap import *
 import numpy as np
 import math
+import array
 
 BLACK = (0, 0, 0)
 ORANGE = (255, 174, 53)
@@ -59,8 +60,23 @@ def line_eq(xy1, xy2):
 
 
 def points_on_line(start, end, amount):
-    # TODO: this
-    return None
+    dist = dist_between_points(start, end)
+    x1,y1=start
+    x2,y2=end
+
+    point_diff=dist/amount
+
+    ang=math.atan2(y2-y1,x2-x1)
+
+    points=np.empty((amount,2))
+    currx=x1
+    for i in range(amount):
+        y=math.tan(ang)*currx
+        points[i][1]=y
+        points[i][0]=currx
+        currx+=point_diff
+    #print(points.dtype)
+    return points
 
 def degrees_for_sight_lines(initial_degree,step,amount):
     assert amount%2==1,'amount is even'
