@@ -1,9 +1,10 @@
-# import ai_geneticNN as aign
+
 import classMap as cm
 from locals import *
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import ai_geneticNN as aig
 
 
 # a=aign.Ai()
@@ -41,16 +42,15 @@ def tst():
     cm.Wall.TEXTURES = [load_image('wall.bmp')]
     a = cm.Wall((50, 50))
 
-    ar = find_intersection_line_coll('0.1*x + 44.000000', a)
-    # print(ar)
+    nnn=round(-5.8600567268337203e+18)
+    print(nnn)
+    ar = is_point_in_collideble((358.82498566694153, nnn), a)
+    print(ar)
 
 
-    Ax = np.arange(0., 120., 1.)
-
-    plt.show()
 
 
-# tst()
+#tst()
 
 def tst10():
     a = degrees_for_sight_lines(40, 10, 5)
@@ -60,8 +60,13 @@ def tst10():
 # tst10()
 
 def tst11():
-    a = points_on_line((10, 10), (150, 64), 10)
+    a = points_on_line((10, 10), (10, 64), 10)
     print(a)
 
 
 tst11()
+
+def tst12():
+    n = aig.Network()
+
+    # tst12()

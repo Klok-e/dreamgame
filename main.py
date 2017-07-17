@@ -46,7 +46,6 @@ def main():
 
     def drawing_step():
 
-
         # draw things
         map1.draw_everything()
 
@@ -64,10 +63,6 @@ def main():
         # update the screen
         pygame.display.update(SCREENRECT)
 
-
-
-
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -75,7 +70,7 @@ def main():
 
             camera.handle_input(event)
 
-            #map1.actors.sprite.h.save_event(event)
+            map1.actors.sprite.h.save_event(event)
             # playergrp.sprite.do_action(event)
 
         mouse_pos = pygame.mouse.get_pos()

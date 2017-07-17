@@ -16,8 +16,8 @@ SCREENRECT = pygame.Rect(0, 0, 800, 500)
 TILESIZE = (16, 16)
 MAPSIZE = (100, 60)
 
-FPS = 30
-PHYSICS_FPS = 30
+FPS = 15
+PHYSICS_FPS = 30  # TODO: implement this
 
 dbg_clock = time.time()
 
@@ -54,6 +54,8 @@ def line_eq(xy1, xy2):
     y2 = xy2[1]
 
     # print("Уравнение прямой, проходящей через эти точки:")
+    if x1 == x2:
+        return float(x1)
     k = (y1 - y2) / (x1 - x2)
     b = y2 - k * x2
     return "%f*x + %f" % (k, b)
@@ -61,36 +63,52 @@ def line_eq(xy1, xy2):
 
 def points_on_line(start, end, amount):
     dist = dist_between_points(start, end)
-    x1,y1=start
-    x2,y2=end
 
-    point_diff=dist/amount
+    point_diff = dist / amount
 
-    ang=math.atan2(y2-y1,x2-x1)
+    x1, y1 = start
+    x2, y2 = end
+    ang = math.atan2(y2 - y1, x2 - x1)
 
-    points=np.empty((amount,2))
-    currx=x1
+    x_diff = math.cos(ang) * point_diff
+
+    points = np.empty((amount, 2))
+
+    eq = line_eq(start, end)
+    if isinstance(eq, float):
+        curry = y1
+        for i in range(amount):
+            points[i][0] = x1
+            points[i][1] = curry
+            curry += point_diff
+        return points
+
+    currx = x1
     for i in range(amount):
-        y=math.tan(ang)*currx
-        points[i][1]=y
-        points[i][0]=currx
-        currx+=point_diff
-    #print(points.dtype)
+        x = currx
+
+        y = eval(eq)
+        points[i][1] = y
+        points[i][0] = currx
+        currx += x_diff
+    # print(points.dtype)
     return points
 
-def degrees_for_sight_lines(initial_degree,step,amount):
-    assert amount%2==1,'amount is even'
 
-    a=[]
-    mul=0
+def degrees_for_sight_lines(initial_degree, step, amount):
+    assert amount % 2 == 1, 'amount is even'
+
+    a = []
+    mul = 0
     for i in range(amount):
-        if i%2==0:
-            a.append(initial_degree-step*mul)
-        elif i%2==1:
+        if i % 2 == 0:
+            a.append(initial_degree - step * mul)
+        elif i % 2 == 1:
             mul += 1
-            a.append(initial_degree+step*mul)
+            a.append(initial_degree + step * mul)
     a.sort()
     return a
+
 
 def dist_between_points(point1, point2):
     x1, y1 = point1
@@ -101,15 +119,19 @@ def dist_between_points(point1, point2):
 
 
 def is_point_in_collideble(point, coll):
+    assert isinstance(coll, m.Wall) or isinstance(coll, m.Entity), 'not collideble'
+    assert isinstance(point, tuple) or isinstance(point, list), 'not tuple or list'
+    # point=round(point[0]),round(point[1])
+    # print(type(point[0]),type(point[1]))
     if isinstance(coll, m.Wall):  # do wall stuff
         a = coll.rect.collidepoint(point)
+
         return a
     elif isinstance(coll, m.Entity):  # do circle stuff
         p = coll.for_movement_struct['pos']
         r = coll.radius
         a = dist_between_points(p, point) < r
         return a
-    assert isinstance(coll, m.Wall) or isinstance(coll, m.Entity), 'not collideble'
 
 
 # TODO: make obstacle detection mathematically

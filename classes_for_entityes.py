@@ -3,7 +3,7 @@ from locals import *
 import pygame
 import math
 import random
-# import ai_geneticNN as aig
+import ai_geneticNN as aig
 import numpy as np
 from classMap import *
 
@@ -183,8 +183,8 @@ class Entity(pygame.sprite.Sprite):
 
         self.dmg_anim_counter = self.dmg_anim_counter_default
 
-        self.ai = aig.Nn_ai(nn_parameters)
-        # self.h = aig.Human(self)
+        #self.ai = aig.Agent()
+        self.h = aig.Human(self)
 
         self.got_damage = 0
 
@@ -246,7 +246,7 @@ class Entity(pygame.sprite.Sprite):
             grass_tile.get_eaten(self.FOOD_EATEN_EVERY_TICK)
 
     def collect_environment_state(self):
-        data = np.zeros((5))
+        data = []
 
         # amount of food available
         data_food = 0
@@ -261,34 +261,45 @@ class Entity(pygame.sprite.Sprite):
 
         # obstacles
         n = self.numb_of_sight_lines
-        data_dist_to_obstacles = np.zeros((n))
+        data_dist_to_obstacles = [0 for i in range(n)]
 
         degrees = degrees_for_sight_lines(data_angle, self.diff_sight_lines_degrees, n)
 
         for i, deg in enumerate(degrees):  # straightforward
             l = self.length_of_sight
-            end = (math.cos(math.radians(data_angle)) * l, math.sin(math.radians(deg)) * l)
-            points = points_on_line(self.for_movement_struct['pos'], end, l)
-
-            for point in points:
+            end = (self.for_movement_struct['pos'][0] + math.cos(math.radians(data_angle)) * l,
+                   self.for_movement_struct['pos'][1] + math.sin(math.radians(deg)) * l)
+            # print(self.for_movement_struct['pos'], end)
+            points = points_on_line(self.for_movement_struct['pos'], end, l // 2)
+            # print(points)
+            for x, y in points:
                 if data_dist_to_obstacles[i]:
                     break
                 for coll in self.collidebles_group_without_self:
-                    if is_point_in_collideble(point, coll):
-                        data_dist_to_obstacles[i] = dist_between_points(self.for_movement_struct['pos'], point)
+                    if is_point_in_collideble((x, y), coll):
+                        data_dist_to_obstacles[i] = dist_between_points(self.for_movement_struct['pos'], (x, y))
                         break
 
+        data.append(data_food)
+        data.append(data_angle)
+        # print(data)
+        data.extend(data_dist_to_obstacles)
         '''
         sight_line_eq=str(math.tan(math.radians(data_angle)))+'*x'+str(self.for_movement_struct['pos'][1])
         for coll in self.mapp.collideblesgrp:
             find_intersection_line_coll(sight_line_eq,coll)
             1/0'''  # math
 
+        #print(data, 'data1')
+        data = np.array(data)
+        #print(data, 'data2')
+        return data
+
     def update(self):
         # print(self.survival_struct['hp'])
         # self.get_damage_animation()
-
-        action = self.ai.decide(action_choices)
+        s = self.collect_environment_state()
+        action = self.h.decide(action_choices)
         self.do_action(action)
 
         self.collide()

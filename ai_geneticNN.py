@@ -3,31 +3,31 @@ import pygame
 import random
 
 from collections import deque
-#import keras
+import keras
 import numpy as np
 
 
-class Nn_ai():
+class Network():
     """Represent a network and let us operate on it.
     Currently only works for an MLP.
     """
     gamma = 0.95  # discount rate
     epsilon = 1.0  # exploration rate
     epsilon_min = 0.01
-    epsilon_decay = 0.99
+    epsilon_decay = 0.95
     learning_rate = 0.001
 
     NN_PARAM_CHOICES = {
-        'nb_neurons': [8, 16, 32, 64],
+        'nb_neurons': [8, 16, 32, 64,128,256],
         'nb_layers': [1, 2, 3, 4],
         'activation': ['relu', 'elu', 'tanh', 'sigmoid'],
         'optimizer': ['rmsprop', 'adam', 'sgd', 'adagrad',
                       'adadelta', 'adamax', 'nadam'],
     }
     state_size = None
-    action_size = None
+    action_size = len(action_choices)
 
-    def __init__(self, network=None):
+    def __init__(self):
         """Initialize our network.
         Args:
             nn_param_choices (dict): Parameters for the network, includes:
@@ -38,12 +38,10 @@ class Nn_ai():
         """
         self.accuracy = 0.
 
-        if network == None:
-            self.network = self.create_random()
-        else:
-            self.network = network
+        self.network=self.create_random()
+        #print(self.network)
 
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=1000)
 
         self.model = self._build_model()
 
@@ -67,10 +65,16 @@ class Nn_ai():
 
                 model.compile(loss='mse',
                               optimizer=keras.optimizers.Adam(lr=self.learning_rate))
+        model.summary()
         return model
 
     def create_random(self):
-        """Create a random network."""
+        """Create a random network.
+        It must look like:
+        [[8, None, 'relu'],
+        [8, 'relu'],
+        [None, 'linear']]
+        """
         # TODO: not random a little
         randnetwork = []
 
@@ -80,6 +84,7 @@ class Nn_ai():
         randnetwork.append(first)
         randnetwork.append(second)
         randnetwork.append(third)
+
 
         return randnetwork
 
@@ -110,7 +115,7 @@ class Nn_ai():
         print(self.network)
 
 
-class AI():
+class Agent():
     def __init__(self):
         self.network = None
         self.count = 0
