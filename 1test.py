@@ -1,4 +1,3 @@
-
 import classMap as cm
 from locals import *
 import numpy as np
@@ -42,15 +41,13 @@ def tst():
     cm.Wall.TEXTURES = [load_image('wall.bmp')]
     a = cm.Wall((50, 50))
 
-    nnn=round(-5.8600567268337203e+18)
+    nnn = round(-5.8600567268337203e+18)
     print(nnn)
     ar = is_point_in_collideble((358.82498566694153, nnn), a)
     print(ar)
 
 
-
-
-#tst()
+# tst()
 
 def tst10():
     a = degrees_for_sight_lines(40, 10, 5)
@@ -64,9 +61,9 @@ def tst11():
     print(a)
 
 
-tst11()
+# tst11()
 
 def tst12():
-    n = aig.Network()
+    n = aig.Agent()
 
     # tst12()

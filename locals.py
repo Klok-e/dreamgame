@@ -1,10 +1,10 @@
 import pygame
 import time
 import classMap as m
-# from classMap import *
+
 import numpy as np
 import math
-import array
+
 
 BLACK = (0, 0, 0)
 ORANGE = (255, 174, 53)
@@ -14,10 +14,12 @@ GRAY = (218, 220, 214)
 SCREENRECT = pygame.Rect(0, 0, 800, 500)
 
 TILESIZE = (16, 16)
-MAPSIZE = (100, 60)
+MAPSIZE = (50, 30)
 
-FPS = 15
+FPS = 30
 PHYSICS_FPS = 30  # TODO: implement this
+
+threads=[]
 
 dbg_clock = time.time()
 
@@ -54,7 +56,8 @@ def line_eq(xy1, xy2):
     y2 = xy2[1]
 
     # print("Уравнение прямой, проходящей через эти точки:")
-    if x1 == x2:
+    if round(x1,5) == round(x2,5):
+        #print('asddgwrsds')
         return float(x1)
     k = (y1 - y2) / (x1 - x2)
     b = y2 - k * x2
@@ -81,6 +84,7 @@ def points_on_line(start, end, amount):
             points[i][0] = x1
             points[i][1] = curry
             curry += point_diff
+        #print(points,'-points')
         return points
 
     currx = x1

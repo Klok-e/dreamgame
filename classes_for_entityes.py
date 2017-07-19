@@ -147,6 +147,7 @@ class Entity(pygame.sprite.Sprite):
     CHANGE_ANGLE_STEP = 15
 
     FOOD_EATEN_EVERY_TICK = 1
+    max_energy = 300
 
     length_of_sight = 100
 
@@ -165,7 +166,7 @@ class Entity(pygame.sprite.Sprite):
                                     'pos': list(pos),  # used for positing
                                     }
 
-        self.survival_struct = {'hp': 100,
+        self.survival_struct = {'energy': 100,
                                 'damage': 10,
                                 'attack_speed_modif': 1,
                                 'armour_penetration_modif': 1,
@@ -183,10 +184,17 @@ class Entity(pygame.sprite.Sprite):
 
         self.dmg_anim_counter = self.dmg_anim_counter_default
 
-        #self.ai = aig.Agent()
-        self.h = aig.Human(self)
+        # self.ai = aig.Agent()
+
 
         self.got_damage = 0
+
+        self.s = self.collect_environment_state()
+        self.count = 0
+
+        print(self.s.shape[1])
+
+        self.agent = aig.Agent(self.s.shape[1])
 
         assert self.numb_of_sight_lines % 2 == 1, 'not even'
 
@@ -242,8 +250,12 @@ class Entity(pygame.sprite.Sprite):
         grass = self.mapp.get_grassgrp()
         collides = pygame.sprite.spritecollide(self, grass, False,
                                                collide_circleNrect)
+        eaten = 0
         for grass_tile in collides:
-            grass_tile.get_eaten(self.FOOD_EATEN_EVERY_TICK)
+            eaten += grass_tile.get_eaten(self.FOOD_EATEN_EVERY_TICK)
+        self.survival_struct['energy'] += eaten
+        if self.survival_struct['energy'] > self.max_energy:
+            self.survival_struct['energy'] = self.max_energy
 
     def collect_environment_state(self):
         data = []
@@ -260,11 +272,17 @@ class Entity(pygame.sprite.Sprite):
         data_angle = self.for_movement_struct['vector'].get_angle()
 
         # obstacles
-        n = self.numb_of_sight_lines
-        data_dist_to_obstacles = [0 for i in range(n)]
+        # n = self.numb_of_sight_lines
+        data_dist_to_obstacles = []
 
+        for wall in self.mapp.unwalkabletilesgrp:
+            c = wall.rect.center
+            # dist = dist_between_points(self.for_movement_struct['pos'], c)
+            data_dist_to_obstacles.extend(c)
+
+        '''
         degrees = degrees_for_sight_lines(data_angle, self.diff_sight_lines_degrees, n)
-
+        #print(degrees)
         for i, deg in enumerate(degrees):  # straightforward
             l = self.length_of_sight
             end = (self.for_movement_struct['pos'][0] + math.cos(math.radians(data_angle)) * l,
@@ -278,8 +296,10 @@ class Entity(pygame.sprite.Sprite):
                 for coll in self.collidebles_group_without_self:
                     if is_point_in_collideble((x, y), coll):
                         data_dist_to_obstacles[i] = dist_between_points(self.for_movement_struct['pos'], (x, y))
-                        break
+                        break'''  # angles
 
+        # finish
+        data.extend(self.for_movement_struct['pos'])
         data.append(data_food)
         data.append(data_angle)
         # print(data)
@@ -290,25 +310,41 @@ class Entity(pygame.sprite.Sprite):
             find_intersection_line_coll(sight_line_eq,coll)
             1/0'''  # math
 
-        #print(data, 'data1')
+        # print(data, 'data1')
         data = np.array(data)
-        #print(data, 'data2')
-        return data
+        # print(data, 'data2')
+        return np.reshape(data, (1, data.shape[0]))
 
     def update(self):
         # print(self.survival_struct['hp'])
         # self.get_damage_animation()
-        s = self.collect_environment_state()
-        action = self.h.decide(action_choices)
-        self.do_action(action)
+
+
+        next_s = self.collect_environment_state()
+        r = self.survival_struct['energy']
+        print(r)
+        a = self.agent.act(next_s)
+
+        self.agent.memorize(self.s, a, r, next_s)
+        self.s = next_s
+
+        self.do_action(a)
 
         self.collide()
 
         self.rotate_to_selfangle()
 
+        self.survival_struct['energy'] -= 1
+
+        self.count += 1
+        if self.count > 100:
+            self.count = 0
+            self.agent.replay(32)
+
     def do_action(self, action):
         # print(self.for_movement_struct['speed'])
         # print(action)
+        action = action_choices[action]
         if action == ATTACK:
             self.attack()
         elif action == K_UP:
@@ -320,6 +356,8 @@ class Entity(pygame.sprite.Sprite):
             self.for_movement_struct['vector'].change_angle_by(self.CHANGE_ANGLE_STEP)
         elif action == EAT:
             self.eat()
+        elif action == STAY:
+            pass
         else:
             pass
 

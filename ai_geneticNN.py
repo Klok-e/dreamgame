@@ -7,7 +7,7 @@ import keras
 import numpy as np
 
 
-class Network():
+class Agent():
     """Represent a network and let us operate on it.
     Currently only works for an MLP.
     """
@@ -16,18 +16,19 @@ class Network():
     epsilon_min = 0.01
     epsilon_decay = 0.95
     learning_rate = 0.001
+    discount_factor = 0.9
 
     NN_PARAM_CHOICES = {
-        'nb_neurons': [8, 16, 32, 64,128,256],
+        'nb_neurons': [8, 16, 32, 64, 128, 256],
         'nb_layers': [1, 2, 3, 4],
         'activation': ['relu', 'elu', 'tanh', 'sigmoid'],
         'optimizer': ['rmsprop', 'adam', 'sgd', 'adagrad',
                       'adadelta', 'adamax', 'nadam'],
     }
-    state_size = None
+
     action_size = len(action_choices)
 
-    def __init__(self):
+    def __init__(self,state_size):
         """Initialize our network.
         Args:
             nn_param_choices (dict): Parameters for the network, includes:
@@ -36,10 +37,12 @@ class Network():
                 activation (list): ['relu', 'elu']
                 optimizer (list): ['rmsprop', 'adam']
         """
+        self.state_size = state_size
+
         self.accuracy = 0.
 
-        self.network=self.create_random()
-        #print(self.network)
+        self.network = self.create_random()
+        # print(self.network)
 
         self.memory = deque(maxlen=1000)
 
@@ -78,6 +81,7 @@ class Network():
         # TODO: not random a little
         randnetwork = []
 
+        #print(self.state_size,self.action_size)
         first = [8, self.state_size, 'relu']
         second = [8, 'relu']
         third = [self.action_size, 'linear']
@@ -85,25 +89,25 @@ class Network():
         randnetwork.append(second)
         randnetwork.append(third)
 
-
         return randnetwork
 
-    def memorize(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+    def memorize(self, state, action, reward, next_state):
+        self.memory.append((state, action, reward, next_state))
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
+        #print(act_values,'- values')
         return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
+        print(self.epsilon)
+
         minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                target = reward + self.gamma * \
-                                  np.amax(self.model.predict(next_state)[0])
+        for state, action, reward, next_state in minibatch:
+
+            target = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.train_on_batch(state, target_f)
@@ -115,20 +119,7 @@ class Network():
         print(self.network)
 
 
-class Agent():
-    def __init__(self):
-        self.network = None
-        self.count = 0
 
-    def decide(self, variants):
-        '''
-        if self.count < len(self.a1):
-            ans = variants[self.a1[self.count]]
-            self.count += 1
-            return ans
-        else:
-            return None'''
-        return random.choice(variants)
 
 
 class Human():

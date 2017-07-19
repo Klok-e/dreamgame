@@ -64,11 +64,11 @@ class Wall(pygame.sprite.Sprite):
         self.line_equations.append(e)
 
         # left line
-        e = self.rect.left+1
+        e = self.rect.left + 1
         self.line_equations.append(e)
 
         # right line
-        e = self.rect.right-1
+        e = self.rect.right - 1
         self.line_equations.append(e)
 
         assert isinstance(e, int), 'wtf r u doin'
@@ -105,7 +105,11 @@ class Grass(pygame.sprite.Sprite):
 
     def get_eaten(self, amount):
         self.food_amount -= amount
+        if self.food_amount<0:
+            self.food_amount=0
+            amount=0
         self.set_colour()
+        return amount
 
     def update(self):
         self.food_amount += self.FOOD_RECOVERY
@@ -114,7 +118,7 @@ class Grass(pygame.sprite.Sprite):
 
 class Mapg():
     MAPCOLOUR = GREEN
-    UPDATE_GRASS_EVERYframes = 200
+    UPDATE_GRASS_EVERYframes = 1000
 
     def __init__(self):
         self.arena = None

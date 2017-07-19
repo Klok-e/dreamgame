@@ -24,6 +24,7 @@ def main():
 
     # clock
     timer = pygame.time.Clock()
+    timer_phys = pygame.time.Clock()
 
     # camera
     camera = Camera()
@@ -35,6 +36,7 @@ def main():
     map1 = Mapg()
 
     def physics_step():
+
         # move the camera
         camera.move()
 
@@ -43,6 +45,8 @@ def main():
 
         # deal damage by attacks
         map1.attacks_do_damage()
+
+        # timer_phys.tick(PHYSICS_FPS)
 
     def drawing_step():
 
@@ -60,8 +64,14 @@ def main():
         blockmouse_at = map1.pix_to_block_coords(mouse_pos, camera)
         display_surf.blit(textobj.render(str(blockmouse_at), True, ORANGE), (10, 10))
 
+        # display fps
+        fps = timer.get_fps()
+        display_surf.blit(textobj.render(str(round(fps, 2)), True, ORANGE), (200, 10))
+
         # update the screen
         pygame.display.update(SCREENRECT)
+
+        # timer.tick(FPS)
 
     while True:
         for event in pygame.event.get():
@@ -70,7 +80,7 @@ def main():
 
             camera.handle_input(event)
 
-            map1.actors.sprite.h.save_event(event)
+            #map1.actors.sprite.h.save_event(event)
             # playergrp.sprite.do_action(event)
 
         mouse_pos = pygame.mouse.get_pos()
