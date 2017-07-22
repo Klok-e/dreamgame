@@ -28,7 +28,7 @@ class Agent():
 
     action_size = len(action_choices)
 
-    def __init__(self,state_size):
+    def __init__(self, state_size):
         """Initialize our network.
         Args:
             nn_param_choices (dict): Parameters for the network, includes:
@@ -41,7 +41,7 @@ class Agent():
 
         self.accuracy = 0.
 
-        self.network = self.create_random()
+        # self.network = self.create_random()
         # print(self.network)
 
         self.memory = deque(maxlen=1000)
@@ -51,23 +51,20 @@ class Agent():
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = keras.models.Sequential()
-        for i, l in enumerate(self.network):
-            if i == 0:
-                neurons = l[0]
-                inpdim = l[1]
-                activation = l[2]
-                model.add(keras.layers.Dense(neurons, input_dim=inpdim, activation=activation))
-            elif i == len(self.network) - 1:
-                act_size = l[0]
-                activation = l[1]
-                model.add(keras.layers.Dense(act_size, activation=activation))
-            else:
-                neurons = l[0]
-                activation = l[1]
-                model.add(keras.layers.Dense(neurons, activation=activation))
 
-                model.compile(loss='mse',
-                              optimizer=keras.optimizers.Adam(lr=self.learning_rate))
+        model.add(keras.layers.Dense(128, input_shape=self.state_size, activation='relu'))
+
+        model.add(keras.layers.Dense(64, activation='relu'))
+
+        model.add(keras.layers.Flatten())
+
+        model.add(keras.layers.Dense(1200, activation='relu'))
+
+        model.add(keras.layers.Dense(40, activation='relu'))
+
+        model.add(keras.layers.Dense(self.action_size, activation='linear'))
+
+        model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self.learning_rate))
         model.summary()
         return model
 
@@ -81,9 +78,9 @@ class Agent():
         # TODO: not random a little
         randnetwork = []
 
-        #print(self.state_size,self.action_size)
-        first = [8, self.state_size, 'relu']
-        second = [8, 'relu']
+        # print(self.state_size,self.action_size)
+        first = [128, self.state_size, 'relu']
+        second = [64, 'relu']
         third = [self.action_size, 'linear']
         randnetwork.append(first)
         randnetwork.append(second)
@@ -98,15 +95,14 @@ class Agent():
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
-        #print(act_values,'- values')
+        # print(act_values, '- values')
         return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
-        print(self.epsilon)
+        print(self.epsilon, 'epsilon')
 
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state in minibatch:
-
             target = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
             target_f = self.model.predict(state)
             target_f[0][action] = target
@@ -117,9 +113,6 @@ class Agent():
     def print_network(self):
         """Print out a network."""
         print(self.network)
-
-
-
 
 
 class Human():

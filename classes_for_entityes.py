@@ -151,7 +151,7 @@ class Entity(pygame.sprite.Sprite):
 
     length_of_sight = 100
 
-    numb_of_sight_lines = 3
+    # numb_of_sight_lines = 3
     diff_sight_lines_degrees = 10
 
     def __init__(self, pos, mapp, nn_parameters=None):
@@ -189,14 +189,15 @@ class Entity(pygame.sprite.Sprite):
 
         self.got_damage = 0
 
-        self.s = self.collect_environment_state()
         self.count = 0
 
-        print(self.s.shape[1])
+        # print(self.s.shape[1])
 
-        self.agent = aig.Agent(self.s.shape[1])
 
-        assert self.numb_of_sight_lines % 2 == 1, 'not even'
+
+        self.flag = 0
+
+        # assert self.numb_of_sight_lines % 2 == 1, 'not even'
 
     def attack(self):
 
@@ -216,9 +217,9 @@ class Entity(pygame.sprite.Sprite):
     def get_damage(self, damage):
         self.got_damage = 1
 
-        self.survival_struct['hp'] -= damage * self.survival_struct['enemy_dmg_modif(selfarmour)']
+        self.survival_struct['energy'] -= damage * self.survival_struct['enemy_dmg_modif(selfarmour)']
 
-        if self.survival_struct['hp'] <= 0:
+        if self.survival_struct['energy'] <= 0:
             self.original_img = self.DEAD_TEXTURES[0]
             self.rotate_to_selfangle()
 
@@ -273,12 +274,22 @@ class Entity(pygame.sprite.Sprite):
 
         # obstacles
         # n = self.numb_of_sight_lines
+        grsmp = self.mapp.mpgr
+        agntmp = self.mapp.mpagnt
+
+        x, y = self.for_movement_struct['pos']
+        blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
+        agntmp[bly - 1][blx - 1] = 2
+
+        #print(grsmp, '\n\n\n\n\n', agntmp)
+
+        '''
         data_dist_to_obstacles = []
 
         for wall in self.mapp.unwalkabletilesgrp:
             c = wall.rect.center
             # dist = dist_between_points(self.for_movement_struct['pos'], c)
-            data_dist_to_obstacles.extend(c)
+            data_dist_to_obstacles.extend(c)'''  # screw it
 
         '''
         degrees = degrees_for_sight_lines(data_angle, self.diff_sight_lines_degrees, n)
@@ -298,31 +309,42 @@ class Entity(pygame.sprite.Sprite):
                         data_dist_to_obstacles[i] = dist_between_points(self.for_movement_struct['pos'], (x, y))
                         break'''  # angles
 
-        # finish
-        data.extend(self.for_movement_struct['pos'])
-        data.append(data_food)
-        data.append(data_angle)
-        # print(data)
-        data.extend(data_dist_to_obstacles)
         '''
         sight_line_eq=str(math.tan(math.radians(data_angle)))+'*x'+str(self.for_movement_struct['pos'][1])
         for coll in self.mapp.collideblesgrp:
             find_intersection_line_coll(sight_line_eq,coll)
             1/0'''  # math
 
-        # print(data, 'data1')
+        # finish
+        data.extend(self.for_movement_struct['pos'])
+        data.append(data_food)
+        data.append(data_angle)
+
         data = np.array(data)
+        # print(data,'data')
+
+        data.resize(grsmp.shape)
+        # print(data,'data2')
+
+        stacked = np.stack((grsmp, agntmp, data), axis=2)
+        #print(stacked.shape)
+        # print(stacked)
         # print(data, 'data2')
-        return np.reshape(data, (1, data.shape[0]))
+        #print(stacked.flatten(),stacked.flatten().shape)
+        return stacked.reshape(1,*stacked.shape)
 
     def update(self):
         # print(self.survival_struct['hp'])
         # self.get_damage_animation()
-
+        if self.flag == 0:
+            self.s = self.collect_environment_state()
+            #print(self.s.shape)
+            self.agent = aig.Agent((30, 50, 3))
+            self.flag = 1
 
         next_s = self.collect_environment_state()
-        r = self.survival_struct['energy']
-        print(r)
+        r = 1 if self.survival_struct['energy'] > 100 else -1
+        # print(r)
         a = self.agent.act(next_s)
 
         self.agent.memorize(self.s, a, r, next_s)
@@ -334,7 +356,7 @@ class Entity(pygame.sprite.Sprite):
 
         self.rotate_to_selfangle()
 
-        self.survival_struct['energy'] -= 1
+        self.get_damage(1)
 
         self.count += 1
         if self.count > 100:

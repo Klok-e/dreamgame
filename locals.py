@@ -5,7 +5,6 @@ import classMap as m
 import numpy as np
 import math
 
-
 BLACK = (0, 0, 0)
 ORANGE = (255, 174, 53)
 GREEN = (43, 255, 13)
@@ -19,7 +18,7 @@ MAPSIZE = (50, 30)
 FPS = 30
 PHYSICS_FPS = 30  # TODO: implement this
 
-threads=[]
+threads = []
 
 dbg_clock = time.time()
 
@@ -30,6 +29,9 @@ K_RIGHT = 'K_RIGHT'
 STAY = 'STAY'
 EAT = 'EAT'
 action_choices = [ATTACK, K_UP, K_LEFT, K_RIGHT, STAY, EAT]
+
+
+# np.set_printoptions(threshold='nan')
 
 
 def load_image(file):
@@ -56,8 +58,8 @@ def line_eq(xy1, xy2):
     y2 = xy2[1]
 
     # print("Уравнение прямой, проходящей через эти точки:")
-    if round(x1,5) == round(x2,5):
-        #print('asddgwrsds')
+    if round(x1, 5) == round(x2, 5):
+        # print('asddgwrsds')
         return float(x1)
     k = (y1 - y2) / (x1 - x2)
     b = y2 - k * x2
@@ -84,7 +86,7 @@ def points_on_line(start, end, amount):
             points[i][0] = x1
             points[i][1] = curry
             curry += point_diff
-        #print(points,'-points')
+        # print(points,'-points')
         return points
 
     currx = x1

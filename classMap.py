@@ -105,15 +105,18 @@ class Grass(pygame.sprite.Sprite):
 
     def get_eaten(self, amount):
         self.food_amount -= amount
-        if self.food_amount<0:
-            self.food_amount=0
-            amount=0
+        if self.food_amount < 0:
+            self.food_amount = 0
+            amount = 0
         self.set_colour()
         return amount
 
     def update(self):
         self.food_amount += self.FOOD_RECOVERY
         self.set_colour()
+
+    def get_food(self):
+        return self.food_amount
 
 
 class Mapg():
@@ -123,8 +126,8 @@ class Mapg():
     def __init__(self):
         self.arena = None
         self.unwalkabletilesgrp = pygame.sprite.Group()
-        # self.actors = pygame.sprite.Group()
-        self.actors = pygame.sprite.GroupSingle()
+        self.actors = pygame.sprite.Group()
+        # self.actors = pygame.sprite.GroupSingle()
         self.collideblesgrp = pygame.sprite.Group()
         self.attacks = pygame.sprite.Group()
         self.grass_tiles = pygame.sprite.Group()
@@ -132,7 +135,29 @@ class Mapg():
         self.__set_map()
         self.set_actors()
 
+        self.mpgr = self.get_mapofgrass()
+        self.mpagnt = self.get_mapofagents()
+
         self.count = self.UPDATE_GRASS_EVERYframes
+
+    def get_mapofgrass(self):  # input to NN
+        mp = np.zeros((MAPSIZE[1], MAPSIZE[0]))
+        for grs in self.grass_tiles:
+            x, y = grs.rect.center
+            blx, bly = x // TILESIZE[0], y // TILESIZE[1]
+            mp[bly][blx] = 1 if grs.get_food() > 30 else 0
+        # print(mp,'\n',mp.shape)
+        return mp
+
+    def get_mapofagents(self):  # input to NN
+        mp = np.zeros((MAPSIZE[1], MAPSIZE[0]))
+        for actor in self.actors:
+            x, y = actor.for_movement_struct['pos']
+            blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
+            # print(blx,bly)
+            mp[bly][blx] = 1.
+        # print(mp,'\n',mp.shape)
+        return mp
 
     def set_actors(self):
         self.actors.add(Entity((100, 100), self))
@@ -152,6 +177,9 @@ class Mapg():
         self.attacks.draw(self.arena)
 
     def update_everything(self):
+        self.mpgr = self.get_mapofgrass()
+        self.mpagnt = self.get_mapofagents()
+
         self.actors.update()
 
         # grass grows every ... frames
