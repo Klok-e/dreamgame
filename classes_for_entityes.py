@@ -149,12 +149,12 @@ class Entity(pygame.sprite.Sprite):
     FOOD_EATEN_EVERY_TICK = 1
     max_energy = 300
 
-    length_of_sight = 100
+    # length_of_sight = 100
 
     # numb_of_sight_lines = 3
     diff_sight_lines_degrees = 10
 
-    def __init__(self, pos, mapp, nn_parameters=None):
+    def __init__(self, pos, mapp, ancestor=None):
         super().__init__()
         self.original_img: pygame.Surface = pygame.transform.scale(random.choice(self.TEXTURES),
                                                                    (TILESIZE[0] * 2, TILESIZE[1] * 2))
@@ -189,24 +189,22 @@ class Entity(pygame.sprite.Sprite):
 
         self.got_damage = 0
 
-        self.count = 0
+        self.count = 0  # for replay
 
         # print(self.s.shape[1])
 
+        self.count1 = 0  # for energy difference
 
+        self.flag = 0  # for newborn
 
-        self.flag = 0
+        self.is_dead = 0  # dead or not
 
-        # assert self.numb_of_sight_lines % 2 == 1, 'not even'
+        if ancestor != None:
+            self.agent = ancestor.agent
+
+            # assert self.numb_of_sight_lines % 2 == 1, 'not even'
 
     def attack(self):
-
-        def cassettes_of_trgl(angle, hypotenuse):
-            angle = angle  # WTf?
-
-            cass_nearest = math.cos(math.radians(angle)) * hypotenuse
-            cass_farest = math.sin(math.radians(angle)) * hypotenuse
-            return cass_nearest, cass_farest
 
         a, b = cassettes_of_trgl(self.for_movement_struct['vector'].get_angle(), self.length_of_hands)
 
@@ -222,6 +220,8 @@ class Entity(pygame.sprite.Sprite):
         if self.survival_struct['energy'] <= 0:
             self.original_img = self.DEAD_TEXTURES[0]
             self.rotate_to_selfangle()
+            if self.survival_struct['energy'] < 0:
+                self.is_dead = 1
 
     def get_damage_animation(self):
         # TODO: make it work
@@ -279,9 +279,9 @@ class Entity(pygame.sprite.Sprite):
 
         x, y = self.for_movement_struct['pos']
         blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
-        agntmp[bly - 1][blx - 1] = 2
+        agntmp[blx][bly] = 2  # pos of self = 2 on map
 
-        #print(grsmp, '\n\n\n\n\n', agntmp)
+        # print(grsmp, '\n\n\n\n\n', agntmp)
 
         '''
         data_dist_to_obstacles = []
@@ -327,11 +327,13 @@ class Entity(pygame.sprite.Sprite):
         # print(data,'data2')
 
         stacked = np.stack((grsmp, agntmp, data), axis=2)
-        #print(stacked.shape)
-        # print(stacked)
-        # print(data, 'data2')
-        #print(stacked.flatten(),stacked.flatten().shape)
-        return stacked.reshape(1,*stacked.shape)
+
+        # stacked=stacked.reshape(1, *stacked.shape)
+
+        stacked = stacked.flatten()
+        stacked = stacked.reshape(1, stacked.shape[0])
+
+        return stacked
 
     def update(self):
         # print(self.survival_struct['hp'])
@@ -339,33 +341,29 @@ class Entity(pygame.sprite.Sprite):
         if self.flag == 0:
             self.s = self.collect_environment_state()
             #print(self.s.shape)
-            self.agent = aig.Agent((30, 50, 3))
+            if not hasattr(self, 'agent'):
+                self.agent = aig.Agent(self.s.shape)
             self.flag = 1
 
-        next_s = self.collect_environment_state()
-        r = 1 if self.survival_struct['energy'] > 100 else -1
-        # print(r)
-        a = self.agent.act(next_s)
-
+        a = self.agent.act(self.s)
+        next_s, r = self.do_action(a)
         self.agent.memorize(self.s, a, r, next_s)
         self.s = next_s
-
-        self.do_action(a)
 
         self.collide()
 
         self.rotate_to_selfangle()
 
-        self.get_damage(1)
-
         self.count += 1
-        if self.count > 100:
+        if self.count > 500:
+            self.get_damage(20)
             self.count = 0
-            self.agent.replay(32)
+            self.agent.replay(8)
 
     def do_action(self, action):
         # print(self.for_movement_struct['speed'])
         # print(action)
+        reward = 0.1
         action = action_choices[action]
         if action == ATTACK:
             self.attack()
@@ -380,8 +378,18 @@ class Entity(pygame.sprite.Sprite):
             self.eat()
         elif action == STAY:
             pass
+        elif action == BREED:
+            reward = self.breed()
         else:
             pass
+
+        if self.is_dead:
+            self.kill()
+            reward = -1
+
+        next_state = self.collect_environment_state()
+
+        return next_state, reward
 
     def collide(self):
         self.for_movement_struct['speed'] *= self.SPEED_DECAY
@@ -434,7 +442,21 @@ class Entity(pygame.sprite.Sprite):
 
         return (newposx, newposy)
 
-    @staticmethod
-    def breed(mom, dad):
-        # TODO: breed
-        pass
+    def breed(self):
+        if self.survival_struct['energy'] > self.max_energy * 0.9:
+            a, b = cassettes_of_trgl(self.for_movement_struct['vector'].get_angle(), self.radius * 2.3)
+
+            pos = self.for_movement_struct['pos'][0] + a, self.for_movement_struct['pos'][1] + b
+            test_if_fits = pygame.sprite.Sprite
+            test_if_fits.radius, test_if_fits.rect = self.radius, self.original_img.get_rect(center=pos)
+            collided = pygame.sprite.spritecollide(test_if_fits, self.mapp.get_collidebles(), False,
+                                                   pygame.sprite.collide_circle)
+            if not collided:
+                Entity(pos, self.mapp, self)
+
+                self.survival_struct['energy'] = self.max_energy * 0.3
+                return 1  # reward
+            else:
+                # print('NO')
+                pass
+        return 0.1  # bcos alive

@@ -12,7 +12,7 @@ class Agent():
     Currently only works for an MLP.
     """
     gamma = 0.95  # discount rate
-    epsilon = 1.0  # exploration rate
+
     epsilon_min = 0.01
     epsilon_decay = 0.95
     learning_rate = 0.001
@@ -44,7 +44,9 @@ class Agent():
         # self.network = self.create_random()
         # print(self.network)
 
-        self.memory = deque(maxlen=1000)
+        self.memory = deque(maxlen=10000)
+        self.epsilon = 1.0  # exploration rate
+
 
         self.model = self._build_model()
 
@@ -52,20 +54,16 @@ class Agent():
         # Neural Net for Deep-Q learning Model
         model = keras.models.Sequential()
 
-        model.add(keras.layers.Dense(128, input_shape=self.state_size, activation='relu'))
-
-        model.add(keras.layers.Dense(64, activation='relu'))
-
-        model.add(keras.layers.Flatten())
-
-        model.add(keras.layers.Dense(1200, activation='relu'))
-
-        model.add(keras.layers.Dense(40, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 11, input_dim=self.state_size[1], activation='relu'))
+        model.add(keras.layers.Dense(2 ** 9, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 8, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 6, activation='relu'))
 
         model.add(keras.layers.Dense(self.action_size, activation='linear'))
 
         model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self.learning_rate))
         model.summary()
+
         return model
 
     def create_random(self):
@@ -100,6 +98,7 @@ class Agent():
 
     def replay(self, batch_size):
         print(self.epsilon, 'epsilon')
+        self.model.save_weights('weights\weights.HDF5')
 
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state in minibatch:
@@ -109,10 +108,6 @@ class Agent():
             self.model.train_on_batch(state, target_f)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-
-    def print_network(self):
-        """Print out a network."""
-        print(self.network)
 
 
 class Human():

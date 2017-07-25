@@ -141,26 +141,26 @@ class Mapg():
         self.count = self.UPDATE_GRASS_EVERYframes
 
     def get_mapofgrass(self):  # input to NN
-        mp = np.zeros((MAPSIZE[1], MAPSIZE[0]))
+        mp = np.zeros((MAPSIZE[0], MAPSIZE[1]))
         for grs in self.grass_tiles:
             x, y = grs.rect.center
             blx, bly = x // TILESIZE[0], y // TILESIZE[1]
-            mp[bly][blx] = 1 if grs.get_food() > 30 else 0
+            mp[blx][bly] = 1 if grs.get_food() > 30 else 0
         # print(mp,'\n',mp.shape)
         return mp
 
     def get_mapofagents(self):  # input to NN
-        mp = np.zeros((MAPSIZE[1], MAPSIZE[0]))
+        mp = np.zeros((MAPSIZE[0], MAPSIZE[1]))
         for actor in self.actors:
             x, y = actor.for_movement_struct['pos']
             blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
             # print(blx,bly)
-            mp[bly][blx] = 1.
+            mp[blx][bly] = 1.
         # print(mp,'\n',mp.shape)
         return mp
 
     def set_actors(self):
-        self.actors.add(Entity((100, 100), self))
+        self.actors.add(Entity((150, 150), self))
 
     def __set_map(self):
         self.arena: pygame.Surface = pygame.Surface((MAPSIZE[0] * TILESIZE[0], MAPSIZE[1] * TILESIZE[1]))
@@ -177,9 +177,9 @@ class Mapg():
         self.attacks.draw(self.arena)
 
     def update_everything(self):
-        self.mpgr = self.get_mapofgrass()
-        self.mpagnt = self.get_mapofagents()
 
+        if len(self.actors) == 0:
+            self.set_actors()
         self.actors.update()
 
         # grass grows every ... frames
@@ -187,6 +187,9 @@ class Mapg():
         if self.count >= self.UPDATE_GRASS_EVERYframes:
             self.grass_tiles.update()
             self.count = 0
+
+        self.mpgr = self.get_mapofgrass()
+        self.mpagnt = self.get_mapofagents()
 
     def animate_attacks(self):
         for attack in self.attacks:

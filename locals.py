@@ -28,7 +28,8 @@ K_LEFT = 'K_LEFT'
 K_RIGHT = 'K_RIGHT'
 STAY = 'STAY'
 EAT = 'EAT'
-action_choices = [ATTACK, K_UP, K_LEFT, K_RIGHT, STAY, EAT]
+BREED = 'BREED'
+action_choices = [ATTACK, K_UP, K_LEFT, K_RIGHT, STAY, EAT, BREED]
 
 
 # np.set_printoptions(threshold='nan')
@@ -138,6 +139,14 @@ def is_point_in_collideble(point, coll):
         r = coll.radius
         a = dist_between_points(p, point) < r
         return a
+
+
+def cassettes_of_trgl(angle, hypotenuse):
+    angle = angle  # WTf?
+
+    cass_nearest = math.cos(math.radians(angle)) * hypotenuse
+    cass_farest = math.sin(math.radians(angle)) * hypotenuse
+    return cass_nearest, cass_farest
 
 
 # TODO: make obstacle detection mathematically
