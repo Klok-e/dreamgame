@@ -154,6 +154,10 @@ class Entity(pygame.sprite.Sprite):
     # numb_of_sight_lines = 3
     diff_sight_lines_degrees = 10
 
+    flag2 = 1
+    count = 0
+    amount_of_entities = 0
+
     def __init__(self, pos, mapp, ancestor=None):
         super().__init__()
         self.original_img: pygame.Surface = pygame.transform.scale(random.choice(self.TEXTURES),
@@ -177,8 +181,8 @@ class Entity(pygame.sprite.Sprite):
 
         self.add(mapp.actors, mapp.collideblesgrp)
 
-        self.collidebles_group_without_self = mapp.collideblesgrp.copy()
-        self.collidebles_group_without_self.remove(self)
+        self.collidebles_group = mapp.collideblesgrp
+        #self.collidebles_group_without_self.remove(self)
 
         self.mapp = mapp
 
@@ -189,11 +193,9 @@ class Entity(pygame.sprite.Sprite):
 
         self.got_damage = 0
 
-        self.count = 0  # for replay
-
         # print(self.s.shape[1])
 
-        self.count1 = 0  # for energy difference
+        # self.count1 = 0  # for energy difference
 
         self.flag = 0  # for newborn
 
@@ -202,7 +204,9 @@ class Entity(pygame.sprite.Sprite):
         if ancestor != None:
             self.agent = ancestor.agent
 
-            # assert self.numb_of_sight_lines % 2 == 1, 'not even'
+        Entity.amount_of_entities += 1
+
+        # assert self.numb_of_sight_lines % 2 == 1, 'not even'
 
     def attack(self):
 
@@ -221,6 +225,7 @@ class Entity(pygame.sprite.Sprite):
             self.original_img = self.DEAD_TEXTURES[0]
             self.rotate_to_selfangle()
             if self.survival_struct['energy'] < 0:
+
                 self.is_dead = 1
 
     def get_damage_animation(self):
@@ -317,7 +322,7 @@ class Entity(pygame.sprite.Sprite):
 
         # finish
         data.extend(self.for_movement_struct['pos'])
-        data.append(data_food)
+        #data.append(data_food)
         data.append(data_angle)
 
         data = np.array(data)
@@ -335,12 +340,21 @@ class Entity(pygame.sprite.Sprite):
 
         return stacked
 
+    def replay_agent(self):
+
+        v=Entity.amount_of_entities if Entity.amount_of_entities!=0 else 1
+
+        if Entity.count / v > 500:
+            self.agent.replay(32)
+            Entity.count = 0
+        Entity.count += 1
+
     def update(self):
         # print(self.survival_struct['hp'])
         # self.get_damage_animation()
         if self.flag == 0:
             self.s = self.collect_environment_state()
-            #print(self.s.shape)
+            # print(self.s.shape)
             if not hasattr(self, 'agent'):
                 self.agent = aig.Agent(self.s.shape)
             self.flag = 1
@@ -354,11 +368,9 @@ class Entity(pygame.sprite.Sprite):
 
         self.rotate_to_selfangle()
 
-        self.count += 1
-        if self.count > 500:
-            self.get_damage(20)
-            self.count = 0
-            self.agent.replay(8)
+        self.get_damage(0.1)
+
+        self.replay_agent()
 
     def do_action(self, action):
         # print(self.for_movement_struct['speed'])
@@ -385,6 +397,7 @@ class Entity(pygame.sprite.Sprite):
 
         if self.is_dead:
             self.kill()
+            Entity.amount_of_entities -= 1
             reward = -1
 
         next_state = self.collect_environment_state()
@@ -400,7 +413,11 @@ class Entity(pygame.sprite.Sprite):
         # check x axis
         self.rect.centerx = newpos[0]
 
-        collided = pygame.sprite.spritecollide(self, self.collidebles_group_without_self, False,
+
+        collidebles_group_without_self:pygame.sprite.Group=self.collidebles_group.copy()
+        collidebles_group_without_self.remove(self)
+
+        collided = pygame.sprite.spritecollide(self, collidebles_group_without_self, False,
                                                collide_circleNrect)
         # print(collided,'x')
 
@@ -415,8 +432,10 @@ class Entity(pygame.sprite.Sprite):
         # check y axis
         self.rect.centery = newpos[1]
 
-        collided = pygame.sprite.spritecollide(self, self.collidebles_group_without_self, False,
+        collided = pygame.sprite.spritecollide(self, collidebles_group_without_self, False,
                                                collide_circleNrect)
+
+        collidebles_group_without_self.empty()
         # print(collided,'y')
         if collided:
             self.rect = currposrect

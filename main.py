@@ -36,6 +36,7 @@ def main():
     map1 = Mapg()
 
     def physics_step():
+        #print(Entity.count, Entity.amount_of_entities)
 
         # move the camera
         camera.move()

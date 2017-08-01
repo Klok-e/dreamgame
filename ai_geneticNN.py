@@ -49,15 +49,16 @@ class Agent():
 
 
         self.model = self._build_model()
+        self.model.load_weights('weights\weights.HDF5')
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = keras.models.Sequential()
 
-        model.add(keras.layers.Dense(2 ** 11, input_dim=self.state_size[1], activation='relu'))
-        model.add(keras.layers.Dense(2 ** 9, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 10, input_dim=self.state_size[1], activation='relu'))
         model.add(keras.layers.Dense(2 ** 8, activation='relu'))
-        model.add(keras.layers.Dense(2 ** 6, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 7, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 5, activation='relu'))
 
         model.add(keras.layers.Dense(self.action_size, activation='linear'))
 

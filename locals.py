@@ -12,8 +12,8 @@ DARKGREEN = (0, 134, 6)
 GRAY = (218, 220, 214)
 SCREENRECT = pygame.Rect(0, 0, 800, 500)
 
-TILESIZE = (16, 16)
-MAPSIZE = (50, 30)
+TILESIZE = (8, 8)
+MAPSIZE = (80, 60)
 
 FPS = 30
 PHYSICS_FPS = 30  # TODO: implement this
