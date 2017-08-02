@@ -81,6 +81,7 @@ class Grass(pygame.sprite.Sprite):
     COLORS = [(214, 225, 34), (124, 252, 0), (0, 255, 0), (50, 205, 50), (0, 128, 0), (0, 100, 0)]
     FOOD_RECOVERY = 1
     FOOD_MAX = 180
+    SLEEP_AFTER_FRAMES_PASSED = 50
 
     def __init__(self, pos, mapp):
         super().__init__()
@@ -92,6 +93,8 @@ class Grass(pygame.sprite.Sprite):
         self.add(mapp.grass_tiles)
 
         self.food_amount = 31
+        self.sleeping = 0
+        self.frames_passed = 0
 
     def set_colour(self):
         f = self.food_amount
@@ -104,6 +107,12 @@ class Grass(pygame.sprite.Sprite):
                     break
 
     def get_eaten(self, amount):
+        if self.sleeping == 1:
+            self.sleeping = 0
+            self.food_amount += self.frames_passed * self.FOOD_RECOVERY
+            self.set_colour()
+        self.frames_passed = 0
+
         self.food_amount -= amount
         if self.food_amount < 0:
             self.food_amount = 0
@@ -112,8 +121,12 @@ class Grass(pygame.sprite.Sprite):
         return amount
 
     def update(self):
-        self.food_amount += self.FOOD_RECOVERY
-        self.set_colour()
+        if self.frames_passed > self.SLEEP_AFTER_FRAMES_PASSED:
+            self.sleeping = 1
+        else:
+            self.food_amount += self.FOOD_RECOVERY
+            self.set_colour()
+        self.frames_passed += 1
 
     def get_food(self):
         return self.food_amount
@@ -135,11 +148,12 @@ class Mapg():
         self.__set_map()
         self.set_actors()
 
-        self.mpgr = self.get_mapofgrass()
-        self.mpagnt = self.get_mapofagents()
+        # self.mpgr = self.get_mapofgrass()
+        # self.mpagnt = self.get_mapofagents()
 
         self.count = self.UPDATE_GRASS_EVERYframes
 
+    # not used
     def get_mapofgrass(self):  # input to NN
         mp = np.zeros((MAPSIZE[0], MAPSIZE[1]))
         for grs in self.grass_tiles:
@@ -188,8 +202,8 @@ class Mapg():
             self.grass_tiles.update()
             self.count = 0
 
-        self.mpgr = self.get_mapofgrass()
-        self.mpagnt = self.get_mapofagents()
+            # self.mpgr = self.get_mapofgrass()
+            # self.mpagnt = self.get_mapofagents()
 
     def animate_attacks(self):
         for attack in self.attacks:

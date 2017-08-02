@@ -63,6 +63,9 @@ class Vector2(object):
     def get_angle(self):
         return math.degrees(self.angle_rad)
 
+    def get_angle_rad(self):
+        return self.angle_rad
+
     def change_components_to(self, xy):
         self.xy = xy
 
@@ -139,7 +142,7 @@ class Entity(pygame.sprite.Sprite):
     GET_DAMAGE_ANIMATION = []
     DEAD_TEXTURES = []
     SPEED_BOOST = 6
-    SPEED_DECAY = 0.8
+    SPEED_DECAY = 0.9
     length_of_hands = TILESIZE[0] + 16
     radius_of_AOE = 4
     dmg_anim_counter_default = 6
@@ -152,9 +155,11 @@ class Entity(pygame.sprite.Sprite):
     # length_of_sight = 100
 
     # numb_of_sight_lines = 3
-    diff_sight_lines_degrees = 10
+    # diff_sight_lines_degrees = 10
 
-    flag2 = 1
+    closest_creaturesNwalls_data = 3
+
+    # flag2 = 1
     count = 0
     amount_of_entities = 0
 
@@ -182,7 +187,7 @@ class Entity(pygame.sprite.Sprite):
         self.add(mapp.actors, mapp.collideblesgrp)
 
         self.collidebles_group = mapp.collideblesgrp
-        #self.collidebles_group_without_self.remove(self)
+        # self.collidebles_group_without_self.remove(self)
 
         self.mapp = mapp
 
@@ -222,10 +227,9 @@ class Entity(pygame.sprite.Sprite):
         self.survival_struct['energy'] -= damage * self.survival_struct['enemy_dmg_modif(selfarmour)']
 
         if self.survival_struct['energy'] <= 0:
-            self.original_img = self.DEAD_TEXTURES[0]
+            self.original_img = pygame.transform.scale(self.DEAD_TEXTURES[0], (TILESIZE[0] * 2, TILESIZE[1] * 2))
             self.rotate_to_selfangle()
             if self.survival_struct['energy'] < 0:
-
                 self.is_dead = 1
 
     def get_damage_animation(self):
@@ -267,24 +271,79 @@ class Entity(pygame.sprite.Sprite):
         data = []
 
         # amount of food available
+        dists_n_angles = []
+        grass = self.mapp.get_grassgrp()
+        for grass_tile in grass:
+            if grass_tile.food_amount>20:
+                a = grass_tile.rect.center
+                b = self.for_movement_struct['pos']
+                dists_n_angles.append((dist_between_points(a, b), math.atan2(a[1] - b[1], a[0] - b[0]), grass_tile.food_amount))
+        dists = [dis_ang[0] for dis_ang in dists_n_angles]
+        data_food = (dists_n_angles[dists.index(min(dists))][1],
+                     dists.pop(dists.index(min(dists))),
+                     dists_n_angles[dists.index(min(dists))][2])
+
+        new_data_food = []
+        for i in range(len(data_food)):
+            new_data_food.extend(data_food)
+        data_food = new_data_food
+        '''
         data_food = 0
         grass = self.mapp.get_grassgrp()
         collides = pygame.sprite.spritecollide(self, grass, False,
                                                pygame.sprite.collide_circle)
         for grass_tile in collides:
-            data_food += grass_tile.food_amount
+            data_food += grass_tile.food_amount'''
 
         # angle of self
-        data_angle = self.for_movement_struct['vector'].get_angle()
+        data_angle = self.for_movement_struct['vector'].get_angle_rad()
 
         # obstacles
-        # n = self.numb_of_sight_lines
-        grsmp = self.mapp.mpgr
-        agntmp = self.mapp.mpagnt
+        actors = self.mapp.actors
+        dists_n_angles = []
+        for actor in actors:
+            a = actor.for_movement_struct['pos']
+            b = self.for_movement_struct['pos']
+            dists_n_angles.append((dist_between_points(a, b), math.atan2(a[1] - b[1], a[0] - b[0])))
 
-        x, y = self.for_movement_struct['pos']
-        blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
-        agntmp[blx][bly] = 2  # pos of self = 2 on map
+        dists = [dis_ang[0] for dis_ang in dists_n_angles]
+        try:
+            data_actors = [(dists_n_angles[dists.index(min(dists))][1], dists.pop(dists.index(min(dists)))) for i in
+                           range(self.closest_creaturesNwalls_data)]
+        except:
+            data_actors = [(0, 0) for i in range(self.closest_creaturesNwalls_data)]
+
+        new_data_actors = []
+        for i in range(len(data_actors)):
+            new_data_actors.extend(data_actors[i])
+        data_actors = new_data_actors
+
+        walls = self.mapp.unwalkabletilesgrp
+        dists_n_angles = []
+        for wall in walls:
+            a = wall.rect.center
+            b = self.for_movement_struct['pos']
+            dists_n_angles.append((dist_between_points(a, b), math.atan2(a[1] - b[1], a[0] - b[0])))
+
+        dists = [dis_ang[0] for dis_ang in dists_n_angles]
+        try:
+            data_walls = [(dists_n_angles[dists.index(min(dists))][1], dists.pop(dists.index(min(dists)))) for i in
+                          range(self.closest_creaturesNwalls_data)]
+        except:
+            data_walls = [(0, 0) for i in range(self.closest_creaturesNwalls_data)]
+
+        new_data_walls = []
+        for i in range(len(data_walls)):
+            new_data_walls.extend(data_walls[i])
+        data_walls = new_data_walls
+
+        # n = self.numb_of_sight_lines
+        # grsmp = self.mapp.mpgr
+        # agntmp = self.mapp.mpagnt
+
+        # x, y = self.for_movement_struct['pos']
+        # blx, bly = int(x // TILESIZE[0]), int(y // TILESIZE[1])
+        # agntmp[blx][bly] = 2  # pos of self = 2 on map
 
         # print(grsmp, '\n\n\n\n\n', agntmp)
 
@@ -321,28 +380,33 @@ class Entity(pygame.sprite.Sprite):
             1/0'''  # math
 
         # finish
-        data.extend(self.for_movement_struct['pos'])
-        #data.append(data_food)
+        # data.extend(self.for_movement_struct['pos'])
+        data.extend(data_food)
         data.append(data_angle)
+        data.extend(data_actors)
+        data.extend(data_walls)
+        data.append(self.survival_struct['energy'])
 
         data = np.array(data)
+        data = data.reshape(1, data.shape[0])
+        # print(data)
         # print(data,'data')
 
-        data.resize(grsmp.shape)
+        # data.resize(grsmp.shape)
         # print(data,'data2')
 
-        stacked = np.stack((grsmp, agntmp, data), axis=2)
+        # stacked = np.stack((grsmp, agntmp, data), axis=2)
 
         # stacked=stacked.reshape(1, *stacked.shape)
 
-        stacked = stacked.flatten()
-        stacked = stacked.reshape(1, stacked.shape[0])
+        # stacked = stacked.flatten()
+        # stacked = stacked.reshape(1, stacked.shape[0])
 
-        return stacked
+        return data
 
     def replay_agent(self):
 
-        v=Entity.amount_of_entities if Entity.amount_of_entities!=0 else 1
+        v = Entity.amount_of_entities if Entity.amount_of_entities != 0 else 1
 
         if Entity.count / v > 500:
             self.agent.replay(32)
@@ -413,9 +477,8 @@ class Entity(pygame.sprite.Sprite):
         # check x axis
         self.rect.centerx = newpos[0]
 
-
-        collidebles_group_without_self:pygame.sprite.Group=self.collidebles_group.copy()
-        collidebles_group_without_self.remove(self)
+        collidebles_group_without_self: pygame.sprite.Group = self.mapp.unwalkabletilesgrp.copy()  # creatures don't collide
+        # collidebles_group_without_self.remove(self)
 
         collided = pygame.sprite.spritecollide(self, collidebles_group_without_self, False,
                                                collide_circleNrect)
@@ -463,7 +526,7 @@ class Entity(pygame.sprite.Sprite):
 
     def breed(self):
         if self.survival_struct['energy'] > self.max_energy * 0.9:
-            a, b = cassettes_of_trgl(self.for_movement_struct['vector'].get_angle(), self.radius * 2.3)
+            a, b = cassettes_of_trgl(self.for_movement_struct['vector'].get_angle(), self.radius * 2.1)
 
             pos = self.for_movement_struct['pos'][0] + a, self.for_movement_struct['pos'][1] + b
             test_if_fits = pygame.sprite.Sprite
@@ -471,7 +534,9 @@ class Entity(pygame.sprite.Sprite):
             collided = pygame.sprite.spritecollide(test_if_fits, self.mapp.get_collidebles(), False,
                                                    pygame.sprite.collide_circle)
             if not collided:
-                Entity(pos, self.mapp, self)
+                e = Entity(pos, self.mapp, self)
+                e.for_movement_struct['vector'].change_angle_by(self.for_movement_struct['vector'].get_angle())
+                e.for_movement_struct['speed'] = e.SPEED_BOOST
 
                 self.survival_struct['energy'] = self.max_energy * 0.3
                 return 1  # reward

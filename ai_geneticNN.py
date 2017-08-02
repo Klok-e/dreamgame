@@ -45,18 +45,17 @@ class Agent():
         # print(self.network)
 
         self.memory = deque(maxlen=10000)
-        self.epsilon = 1.0  # exploration rate
-
+        self.epsilon = 0.1  # exploration rate
 
         self.model = self._build_model()
-        self.model.load_weights('weights\weights.HDF5')
+        #self.model.load_weights('weights\weights.HDF5')
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = keras.models.Sequential()
 
-        model.add(keras.layers.Dense(2 ** 10, input_dim=self.state_size[1], activation='relu'))
-        model.add(keras.layers.Dense(2 ** 8, activation='relu'))
+        model.add(keras.layers.Dense(2 ** 9, input_dim=self.state_size[1], activation='relu'))
+        model.add(keras.layers.Dense(2 ** 7, activation='relu'))
         model.add(keras.layers.Dense(2 ** 7, activation='relu'))
         model.add(keras.layers.Dense(2 ** 5, activation='relu'))
 
