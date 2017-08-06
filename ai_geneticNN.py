@@ -48,7 +48,7 @@ class Agent():
         self.epsilon = 0.1  # exploration rate
 
         self.model = self._build_model()
-        #self.model.load_weights('weights\weights.HDF5')
+        # self.model.load_weights('weights\weights.HDF5')
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
